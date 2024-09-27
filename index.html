@@ -119,6 +119,62 @@
     </div>
 
     <script>
+          <script>
+        // Function to dynamically load Vibrant.js
+        function loadScript(url) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = url;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Load Vibrant.js before processing
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/node-vibrant/3.1.6/vibrant.min.js')
+            .then(() => {
+                console.log('Vibrant.js loaded successfully');
+            })
+            .catch(error => {
+                console.error('Failed to load Vibrant.js:', error);
+            });
+
+        function processImage() {
+            const input = document.getElementById('imageUpload');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        document.getElementById('imagePreview').innerHTML = '<img src="' + e.target.result + '" style="max-width: 100%;">';
+                        analyzeColors(img);
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function analyzeColors(img) {
+            console.log("Analyzing colors...");
+            if (typeof Vibrant === 'undefined') {
+                console.error("Vibrant.js is not loaded. Please try again in a few moments.");
+                return;
+            }
+            Vibrant.from(img.src).getPalette((err, palette) => {
+                if (err) {
+                    console.error("Error in color analysis:", err);
+                    return;
+                }
+                console.log("Palette:", palette);
+                const recommendations = generateRecommendations(palette);
+                console.log("Recommendations:", recommendations);
+                displayRecommendations(recommendations);
+                createMatPreviews(img, recommendations);
+            });
+        }
         function processImage() {
             const input = document.getElementById('imageUpload');
             const file = input.files[0];
