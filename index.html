@@ -137,12 +137,15 @@
         }
 
         function analyzeColors(img) {
+            console.log("Analyzing colors...");
             Vibrant.from(img).getPalette((err, palette) => {
                 if (err) {
-                    console.error(err);
+                    console.error("Error in color analysis:", err);
                     return;
                 }
+                console.log("Palette:", palette);
                 const recommendations = generateRecommendations(palette);
+                console.log("Recommendations:", recommendations);
                 displayRecommendations(recommendations);
                 createMatPreviews(img, recommendations);
             });
@@ -226,21 +229,29 @@
                 };
             }
 
-            Object.entries(palette).forEach(([name, color]) => {
-                if (color) {
-                    const hex = color.getHex();
-                    const brightness = getBrightness(hexToRgb(hex));
-                    
-                    recommendations.push({ name: `${name} (Original)`, color: hex });
-                    recommendations.push({ name: `${name} (Complementary)`, color: getComplementary(hex) });
-                    recommendations.push({ name: `${name} (Lighter)`, color: getMonochromatic(hex, 0.2) });
-                    recommendations.push({ name: `${name} (Darker)`, color: getMonochromatic(hex, -0.2) });
-                    
-                    if (brightness > 128) {
-                        recommendations.push({ name: 'Neutral (Dark)', color: '#303030' });
-                    } else {
-                        recommendations.push({ name: 'Neutral (Light)', color: '#E0E0E0' });
-                    }
+            // Simplify color extraction to ensure we get results
+            const colors = [
+                palette.Vibrant,
+                palette.LightVibrant,
+                palette.DarkVibrant,
+                palette.Muted,
+                palette.LightMuted,
+                palette.DarkMuted
+            ].filter(color => color);
+
+            colors.forEach((color, index) => {
+                const hex = color.getHex();
+                const brightness = getBrightness(hexToRgb(hex));
+                
+                recommendations.push({ name: `Color ${index + 1} (Original)`, color: hex });
+                recommendations.push({ name: `Color ${index + 1} (Complementary)`, color: getComplementary(hex) });
+                recommendations.push({ name: `Color ${index + 1} (Lighter)`, color: getMonochromatic(hex, 0.2) });
+                recommendations.push({ name: `Color ${index + 1} (Darker)`, color: getMonochromatic(hex, -0.2) });
+                
+                if (brightness > 128) {
+                    recommendations.push({ name: 'Neutral (Dark)', color: '#303030' });
+                } else {
+                    recommendations.push({ name: 'Neutral (Light)', color: '#E0E0E0' });
                 }
             });
 
