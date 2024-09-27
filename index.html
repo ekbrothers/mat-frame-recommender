@@ -192,21 +192,6 @@
             }
         }
 
-        function analyzeColors(img) {
-            console.log("Analyzing colors...");
-            Vibrant.from(img.src).getPalette((err, palette) => {
-                if (err) {
-                    console.error("Error in color analysis:", err);
-                    return;
-                }
-                console.log("Palette:", palette);
-                const recommendations = generateRecommendations(palette);
-                console.log("Recommendations:", recommendations);
-                displayRecommendations(recommendations);
-                createMatPreviews(img, recommendations);
-            });
-        }
-
         function generateRecommendations(palette) {
             const recommendations = [];
             
