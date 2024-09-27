@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mat Color Recommender</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vibrant.js/1.0.0/Vibrant.min.js"></script>
+    <style>
+        /* Copy the CSS from your framing calculator here */
+        /* Add or modify styles as needed */
+        #imagePreview {
+            max-width: 100%;
+            margin-top: 20px;
+        }
+        .color-sample {
+            width: 50px;
+            height: 50px;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .mat-preview {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+        .mat-preview canvas {
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mat Color Recommender</h1>
+        
+        <form id="imageUploadForm">
+            <h2>Upload Image</h2>
+            <input type="file" id="imageUpload" accept="image/*" required>
+            <button type="button" onclick="processImage()">Get Recommendations</button>
+        </form>
+
+        <div id="imagePreview"></div>
+        <div id="colorRecommendations"></div>
+        <div id="matPreviews"></div>
+    </div>
+
+    <script>
+        function processImage() {
+            const input = document.getElementById('imageUpload');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        document.getElementById('imagePreview').innerHTML = '<img src="' + e.target.result + '" style="max-width: 100%;">';
+                        analyzeColors(img);
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function analyzeColors(img) {
+            Vibrant.from(img).getPalette((err, palette) => {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                const recommendations = generateRecommendations(palette);
+                displayRecommendations(recommendations);
+                createMatPreviews(img, recommendations);
+            });
+        }
+
+        function generateRecommendations(palette) {
+            // This is a simple recommendation algorithm. You might want to refine this.
+            return [
+                { name: "Vibrant", color: palette.Vibrant.getHex() },
+                { name: "Muted", color: palette.Muted.getHex() },
+                { name: "Light Vibrant", color: palette.LightVibrant.getHex() },
+                { name: "Dark Vibrant", color: palette.DarkVibrant.getHex() },
+                { name: "Light Muted", color: palette.LightMuted.getHex() },
+                { name: "Dark Muted", color: palette.DarkMuted.getHex() }
+            ].filter(rec => rec.color); // Filter out any undefined colors
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('colorRecommendations');
+            container.innerHTML = '<h2>Recommended Mat Colors</h2>';
+            recommendations.forEach(rec => {
+                container.innerHTML += `
+                    <div>
+                        <span class="color-sample" style="background-color: ${rec.color};"></span>
+                        ${rec.name}: ${rec.color}
+                    </div>
+                `;
+            });
+        }
+
+        function createMatPreviews(img, recommendations) {
+            const container = document.getElementById('matPreviews');
+            container.innerHTML = '<h2>Mat Color Previews</h2>';
+            recommendations.forEach(rec => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const matWidth = 50; // Width of mat border
+                
+                canvas.width = img.width + (matWidth * 2);
+                canvas.height = img.height + (matWidth * 2);
+
+                // Draw mat
+                ctx.fillStyle = rec.color;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw image
+                ctx.drawImage(img, matWidth, matWidth, img.width, img.height);
+
+                container.innerHTML += `
+                    <div class="mat-preview">
+                        <canvas width="${canvas.width}" height="${canvas.height}"></canvas>
+                        <p>${rec.name}</p>
+                    </div>
+                `;
+                container.lastElementChild.querySelector('canvas').getContext('2d').drawImage(canvas, 0, 0);
+            });
+        }
+    </script>
+</body>
+</html>
