@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mat Color Recommender</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vibrant.js/1.0.0/Vibrant.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/node-vibrant/3.1.6/vibrant.min.js"></script>
     <style>
         :root {
             --primary-color: #BB86FC;
@@ -138,7 +138,7 @@
 
         function analyzeColors(img) {
             console.log("Analyzing colors...");
-            Vibrant.from(img).getPalette((err, palette) => {
+            Vibrant.from(img.src).getPalette((err, palette) => {
                 if (err) {
                     console.error("Error in color analysis:", err);
                     return;
@@ -229,7 +229,6 @@
                 };
             }
 
-            // Simplify color extraction to ensure we get results
             const colors = [
                 palette.Vibrant,
                 palette.LightVibrant,
@@ -240,8 +239,9 @@
             ].filter(color => color);
 
             colors.forEach((color, index) => {
-                const hex = color.getHex();
-                const brightness = getBrightness(hexToRgb(hex));
+                const hex = color.hex;
+                const rgb = color.rgb;
+                const brightness = getBrightness(rgb);
                 
                 recommendations.push({ name: `Color ${index + 1} (Original)`, color: hex });
                 recommendations.push({ name: `Color ${index + 1} (Complementary)`, color: getComplementary(hex) });
