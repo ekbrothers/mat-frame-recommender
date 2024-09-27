@@ -74,29 +74,135 @@
         }
 
         function generateRecommendations(palette) {
-            // This is a simple recommendation algorithm. You might want to refine this.
-            return [
-                { name: "Vibrant", color: palette.Vibrant.getHex() },
-                { name: "Muted", color: palette.Muted.getHex() },
-                { name: "Light Vibrant", color: palette.LightVibrant.getHex() },
-                { name: "Dark Vibrant", color: palette.DarkVibrant.getHex() },
-                { name: "Light Muted", color: palette.LightMuted.getHex() },
-                { name: "Dark Muted", color: palette.DarkMuted.getHex() }
-            ].filter(rec => rec.color); // Filter out any undefined colors
+    const recommendations = [];
+    
+    // Convert hex to RGB
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    // Calculate color brightness
+    function getBrightness(rgb) {
+        return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+    }
+
+    // Get complementary color
+    function getComplementary(hex) {
+        const rgb = hexToRgb(hex);
+        return `#${(0xFFFFFF ^ (rgb.r << 16 | rgb.g << 8 | rgb.b)).toString(16).padStart(6, '0')}`;
+    }
+
+    // Get monochromatic colors
+    function getMonochromatic(hex, variation) {
+        const rgb = hexToRgb(hex);
+        const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+        hsl.l = Math.max(0, Math.min(1, hsl.l + variation));
+        const newRgb = hslToRgb(hsl.h, hsl.s, hsl.l);
+        return `#${(newRgb.r << 16 | newRgb.g << 8 | newRgb.b).toString(16).padStart(6, '0')}`;
+    }
+
+    // RGB to HSL conversion
+    function rgbToHsl(r, g, b) {
+        r /= 255, g /= 255, b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+
+        if (max === min) {
+            h = s = 0;
+        } else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+        return { h, s, l };
+    }
+
+    // HSL to RGB conversion
+    function hslToRgb(h, s, l) {
+        let r, g, b;
+
+        if (s === 0) {
+            r = g = b = l;
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
         }
 
-        function displayRecommendations(recommendations) {
-            const container = document.getElementById('colorRecommendations');
-            container.innerHTML = '<h2>Recommended Mat Colors</h2>';
-            recommendations.forEach(rec => {
-                container.innerHTML += `
-                    <div>
-                        <span class="color-sample" style="background-color: ${rec.color};"></span>
-                        ${rec.name}: ${rec.color}
-                    </div>
-                `;
-            });
+        return {
+            r: Math.round(r * 255),
+            g: Math.round(g * 255),
+            b: Math.round(b * 255)
+        };
+    }
+
+    // Generate recommendations
+    Object.entries(palette).forEach(([name, color]) => {
+        if (color) {
+            const hex = color.getHex();
+            const brightness = getBrightness(hexToRgb(hex));
+            
+            // Original color
+            recommendations.push({ name: `${name} (Original)`, color: hex });
+            
+            // Complementary color
+            recommendations.push({ name: `${name} (Complementary)`, color: getComplementary(hex) });
+            
+            // Monochromatic variations
+            recommendations.push({ name: `${name} (Lighter)`, color: getMonochromatic(hex, 0.2) });
+            recommendations.push({ name: `${name} (Darker)`, color: getMonochromatic(hex, -0.2) });
+            
+            // Neutral options
+            if (brightness > 128) {
+                recommendations.push({ name: 'Neutral (Dark)', color: '#303030' });
+            } else {
+                recommendations.push({ name: 'Neutral (Light)', color: '#E0E0E0' });
+            }
         }
+    });
+
+    // Add some standard neutral options
+    recommendations.push({ name: 'Classic White', color: '#FFFFFF' });
+    recommendations.push({ name: 'Off-White', color: '#F5F5F5' });
+    recommendations.push({ name: 'Light Gray', color: '#D3D3D3' });
+    recommendations.push({ name: 'Charcoal', color: '#36454F' });
+    recommendations.push({ name: 'Black', color: '#000000' });
+
+    return recommendations;
+}
+        function displayRecommendations(recommendations) {
+    const container = document.getElementById('colorRecommendations');
+    container.innerHTML = '<h2>Recommended Mat Colors</h2>';
+    recommendations.forEach(rec => {
+        container.innerHTML += `
+            <div>
+                <span class="color-sample" style="background-color: ${rec.color};"></span>
+                ${rec.name}: ${rec.color}
+            </div>
+        `;
+    });
+}
 
         function createMatPreviews(img, recommendations) {
             const container = document.getElementById('matPreviews');
