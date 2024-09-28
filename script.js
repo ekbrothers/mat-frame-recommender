@@ -110,29 +110,51 @@ function createMatPreviews(img, recommendations) {
     container.innerHTML = '<h2>Mat Color Previews</h2>';
     recommendations.forEach((rec, index) => {
         console.log(`Creating preview for ${rec.name} (${rec.color})`);
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const matWidth = 50;
-        
-        const scaleFactor = Math.min(200 / img.width, 200 / img.height);
-        const scaledWidth = img.width * scaleFactor;
-        const scaledHeight = img.height * scaleFactor;
-        
-        canvas.width = scaledWidth + (matWidth * 2);
-        canvas.height = scaledHeight + (matWidth * 2);
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const matWidth = 50;
+            
+            const scaleFactor = Math.min(200 / img.width, 200 / img.height);
+            const scaledWidth = Math.max(img.width * scaleFactor, 1);  // Ensure width is at least 1
+            const scaledHeight = Math.max(img.height * scaleFactor, 1);  // Ensure height is at least 1
+            
+            canvas.width = scaledWidth + (matWidth * 2);
+            canvas.height = scaledHeight + (matWidth * 2);
+            
+            console.log(`Canvas size: ${canvas.width} x ${canvas.height}`);
 
-        ctx.fillStyle = rec.color;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, matWidth, matWidth, scaledWidth, scaledHeight);
+            // Draw mat
+            ctx.fillStyle = rec.color;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            console.log(`Mat color ${rec.color} applied`);
 
-        container.innerHTML += `
-            <div class="mat-preview">
+            // Draw image
+            try {
+                ctx.drawImage(img, matWidth, matWidth, scaledWidth, scaledHeight);
+                console.log("Image drawn on canvas");
+            } catch (imgError) {
+                console.error("Error drawing image on canvas:", imgError);
+            }
+
+            const previewDiv = document.createElement('div');
+            previewDiv.className = 'mat-preview';
+            previewDiv.innerHTML = `
                 <canvas width="${canvas.width}" height="${canvas.height}"></canvas>
-                <p>${rec.name}</p>
-            </div>
-        `;
-        container.lastElementChild.querySelector('canvas').getContext('2d').drawImage(canvas, 0, 0);
-        console.log(`Preview ${index + 1} created`);
+                <p>${rec.name}: ${rec.color}</p>
+            `;
+            container.appendChild(previewDiv);
+
+            const previewCanvas = previewDiv.querySelector('canvas');
+            const previewCtx = previewCanvas.getContext('2d');
+            previewCtx.drawImage(canvas, 0, 0);
+            
+            console.log(`Preview ${index + 1} created and added to container`);
+        } catch (error) {
+            console.error(`Error creating preview for ${rec.name}:`, error);
+        }
     });
     console.log("All previews created");
 }
+
+console.log("All functions defined");
