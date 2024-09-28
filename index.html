@@ -5,50 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mat Color Recommender</title>
     <style>
+        :root {
+            --primary-color: #BB86FC;
+            --primary-variant: #3700B3;
+            --secondary-color: #03DAC6;
+            --background: #121212;
+            --surface: #1E1E1E;
+            --error: #CF6679;
+            --on-primary: #000000;
+            --on-background: #FFFFFF;
+            --on-surface: #FFFFFF;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background);
+            color: var(--on-background);
+            margin: 0;
+            padding: 0;
             line-height: 1.6;
-            color: #333;
+        }
+
+        .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f4f4f4;
         }
+
         h1, h2 {
-            color: #2c3e50;
+            color: var(--primary-color);
+            text-align: center;
         }
+
+        form {
+            background-color: var(--surface);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: var(--background);
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            color: var(--on-background);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: var(--on-primary);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--primary-variant);
+        }
+
         #imagePreview {
             max-width: 100%;
             margin-top: 20px;
         }
+
+        #colorRecommendations, #matPreviews {
+            margin-top: 20px;
+            background-color: var(--surface);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
         .color-sample {
             width: 50px;
             height: 50px;
             display: inline-block;
             margin-right: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--on-surface);
         }
+
         .mat-preview {
             display: inline-block;
             margin: 10px;
             text-align: center;
         }
+
         .mat-preview canvas {
-            border: 1px solid #ddd;
+            border: 1px solid var(--on-surface);
             max-width: 200px;
             max-height: 200px;
         }
     </style>
 </head>
 <body>
-    <h1>Mat Color Recommender</h1>
-    
-    <input type="file" id="imageUpload" accept="image/*">
-    <button onclick="processImage()">Get Recommendations</button>
+    <div class="container">
+        <h1>Mat Color Recommender</h1>
+        
+        <form id="imageUploadForm">
+            <h2>Upload Image</h2>
+            <input type="file" id="imageUpload" accept="image/*" required>
+            <button type="button" onclick="processImage()">Get Recommendations</button>
+        </form>
 
-    <div id="imagePreview"></div>
-    <div id="colorRecommendations"></div>
-    <div id="matPreviews"></div>
+        <div id="imagePreview"></div>
+        <div id="colorRecommendations"></div>
+        <div id="matPreviews"></div>
+    </div>
 
     <script>
         function processImage() {
